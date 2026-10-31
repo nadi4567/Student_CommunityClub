@@ -1,6 +1,5 @@
-import { Badge, Card, Empty, Select } from "@/components/ui";
+import { Badge, Button, Card, Empty } from "@/components/ui";
 import { useStore } from "@/lib/store";
-import type { Role } from "@/lib/types";
 
 export function AdminUsersPage() {
   const store = useStore();
@@ -18,7 +17,8 @@ export function AdminUsersPage() {
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Role</th>
-              <th className="px-4 py-3">Since</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -27,22 +27,37 @@ export function AdminUsersPage() {
                 <td className="px-4 py-3 font-medium">{u.name}</td>
                 <td className="px-4 py-3 text-slate-500">{u.email}</td>
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Badge tone={u.role === "admin" ? "rose" : u.role === "leader" ? "violet" : "slate"}>
-                      {u.role}
-                    </Badge>
-                    <Select
-                      className="w-32 py-1"
-                      value={u.role}
-                      onChange={(e) => store.setUserRole(u.id, e.target.value as Role)}
-                    >
-                      <option value="student">student</option>
-                      <option value="leader">leader</option>
-                      <option value="admin">admin</option>
-                    </Select>
+                  <Badge tone={u.role === "admin" ? "rose" : u.role === "leader" ? "violet" : "slate"}>
+                    {u.role}
+                  </Badge>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap gap-1">
+                    {u.banned ? <Badge tone="rose">banned</Badge> : <Badge tone="green">active</Badge>}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-slate-500">{u.memberSince}</td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap gap-2">
+                    {u.banned ? (
+                      <Button
+                        variant="secondary"
+                        className="px-3 py-1.5 text-xs"
+                        onClick={() => store.updateUser(u.id, { banned: false })}
+                      >
+                        Unban
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="danger"
+                        className="px-3 py-1.5 text-xs"
+                        onClick={() => store.updateUser(u.id, { banned: true })}
+                        disabled={u.id === store.currentUser?.id}
+                      >
+                        Ban
+                      </Button>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

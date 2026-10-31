@@ -182,7 +182,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               phone: u.phone ?? "",
               avatar: u.avatar ?? "",
               memberSince: u.memberSince ?? "",
+              banned: u.banned ?? false,
+              featured: u.featured ?? false,
             };
+            if (mapped.banned) {
+              return "Your account has been banned.";
+            }
             commit((prev) => {
               const exists = prev.users.some((x) => x.id === mapped.id);
               return {
@@ -199,6 +204,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password,
           );
           if (!user) return "Invalid email or password.";
+          if (user.banned) return "Your account has been banned.";
           commit((prev) => ({ ...prev, currentUserId: user.id }));
           return null;
         }

@@ -11,6 +11,8 @@ export type User = {
   phone: string;
   avatar: string;
   memberSince: string;
+  banned?: boolean;
+  featured?: boolean;
 };
 
 export type Club = {
