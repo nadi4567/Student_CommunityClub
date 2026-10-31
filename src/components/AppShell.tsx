@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { Logo } from "./Logo";
+import { PublicNavbar } from "./PublicNavbar";
 import { unreadCount, useStore } from "@/lib/store";
 
 const studentNav = [
@@ -61,9 +62,28 @@ export function AppShell() {
     return studentNav;
   }, [currentUser]);
 
-  if (!currentUser) {
+  const isGuestBrowse =
+    !currentUser &&
+    (pathname.startsWith("/app/clubs") || pathname.startsWith("/app/events"));
+
+  if (!currentUser && !isGuestBrowse) {
     return <Navigate to="/login" replace />;
   }
+
+  if (isGuestBrowse) {
+    return (
+      <>
+        <PublicNavbar />
+        <main className="min-h-screen bg-page p-4 md:p-6">
+          <div className="mx-auto max-w-6xl">
+            <Outlet />
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  if (!currentUser) return null;
 
   function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
     return (

@@ -10,7 +10,7 @@ const tabs = ["About", "Events", "Members", "Announcements"] as const;
 export function ClubDetailPage() {
   const { id } = useParams<{ id: string }>();
   const store = useStore();
-  const user = store.currentUser!;
+  const user = store.currentUser;
   const club = store.clubs.find((c) => c.id === id);
   const leader = store.users.find((u) => u.id === club?.leaderId);
   const [tab, setTab] = useState<(typeof tabs)[number]>("About");
@@ -19,8 +19,8 @@ export function ClubDetailPage() {
 
   if (!club) return <Empty title="Club not found" body="This club may have been removed." />;
 
-  const joined = club.memberIds.includes(user.id);
-  const pending = club.pendingMemberIds.includes(user.id);
+  const joined = user ? club.memberIds.includes(user.id) : false;
+  const pending = user ? club.pendingMemberIds.includes(user.id) : false;
   const events = store.events.filter((e) => e.clubId === club.id);
   const announcements = store.announcements.filter((a) => a.clubId === club.id);
   const members = store.users.filter((u) => club.memberIds.includes(u.id));
@@ -47,7 +47,15 @@ export function ClubDetailPage() {
               ) : pending ? (
                 <Button variant="secondary">Request pending</Button>
               ) : (
-                <Button onClick={() => store.joinClub(club.id)}>Join Club</Button>
+                <Button
+                  onClick={() =>
+                    user
+                      ? store.joinClub(club.id)
+                      : (window.location.href = `/login?next=${encodeURIComponent(`/app/clubs/${club.id}`)}`)
+                  }
+                >
+                  Join Club
+                </Button>
               )}
               <a href={`mailto:${leader?.email ?? ""}`}>
                 <Button variant="outline">Contact Leader</Button>

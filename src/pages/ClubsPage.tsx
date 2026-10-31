@@ -7,7 +7,7 @@ import { useStore } from "@/lib/store";
 
 export function ClubsPage() {
   const store = useStore();
-  const user = store.currentUser!;
+  const user = store.currentUser;
   const [searchParams] = useSearchParams();
   const q = (searchParams.get("q") ?? "").trim().toLowerCase();
   const [category, setCategory] = useState("All Categories");
@@ -61,9 +61,13 @@ export function ClubsPage() {
             <ClubCard
               key={club.id}
               club={club}
-              joined={club.memberIds.includes(user.id)}
-              pending={club.pendingMemberIds.includes(user.id)}
-              onJoin={() => store.joinClub(club.id)}
+              joined={user ? club.memberIds.includes(user.id) : false}
+              pending={user ? club.pendingMemberIds.includes(user.id) : false}
+              onJoin={
+                user
+                  ? () => store.joinClub(club.id)
+                  : () => (window.location.href = "/login?next=/app/clubs")
+              }
             />
           ))}
         </div>

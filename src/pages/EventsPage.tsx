@@ -5,7 +5,7 @@ import { Badge, Button, Card } from "@/components/ui";
 
 export function EventsPage() {
   const store = useStore();
-  const user = store.currentUser!;
+  const user = store.currentUser;
   const [searchParams] = useSearchParams();
   const q = (searchParams.get("q") ?? "").trim().toLowerCase();
   const events = [...store.events]
@@ -29,7 +29,7 @@ export function EventsPage() {
       {events.map((event) => {
         const club = store.clubs.find((c) => c.id === event.clubId);
         const md = monthDay(event.date);
-        const registered = event.registeredIds.includes(user.id);
+        const registered = user ? event.registeredIds.includes(user.id) : false;
         return (
           <Card key={event.id} className="flex flex-wrap items-center gap-4 p-4">
             <div className="grid h-16 w-16 place-items-center rounded-2xl bg-violet-50 text-center">

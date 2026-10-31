@@ -8,7 +8,7 @@ import { useStore } from "@/lib/store";
 export function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const store = useStore();
-  const user = store.currentUser!;
+  const user = store.currentUser;
   const event = store.events.find((e) => e.id === id);
   const [copied, setCopied] = useState(false);
   const [reason, setReason] = useState("");
@@ -18,7 +18,7 @@ export function EventDetailPage() {
 
   const club = store.clubs.find((c) => c.id === event.clubId);
   const related = store.events.filter((e) => e.clubId === event.clubId && e.id !== event.id).slice(0, 3);
-  const registered = event.registeredIds.includes(user.id);
+  const registered = user ? event.registeredIds.includes(user.id) : false;
   const md = monthDay(event.date);
   const full = event.registeredIds.length >= event.capacity;
 
@@ -86,7 +86,15 @@ export function EventDetailPage() {
               Cancel registration
             </Button>
           ) : (
-            <Button className="w-full" disabled={full} onClick={() => store.registerEvent(event.id)}>
+            <Button
+              className="w-full"
+              disabled={full}
+              onClick={() =>
+                user
+                  ? store.registerEvent(event.id)
+                  : (window.location.href = `/login?next=${encodeURIComponent(`/app/events/${event.id}`)}`)
+              }
+            >
               {full ? "Event full" : "Register For Event"}
             </Button>
           )}

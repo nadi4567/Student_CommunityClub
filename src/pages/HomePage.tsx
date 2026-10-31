@@ -3,21 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { CalendarDays, Compass, Search, Sparkles, Users } from "lucide-react";
 import { HeroArt } from "@/components/HeroArt";
 import { PublicNavbar } from "@/components/PublicNavbar";
-import { useStore } from "@/lib/store";
 
 export function HomePage() {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
-  const { currentUser } = useStore();
 
   function onSearch(e: FormEvent) {
     e.preventDefault();
     const clubsPath = q.trim() ? `/app/clubs?q=${encodeURIComponent(q.trim())}` : "/app/clubs";
-    if (currentUser) {
-      navigate(clubsPath);
-      return;
-    }
-    navigate(`/login?next=${encodeURIComponent(clubsPath)}`);
+    navigate(clubsPath);
   }
 
   return (

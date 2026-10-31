@@ -5,8 +5,8 @@ import { useStore } from "@/lib/store";
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/login?next=/app/clubs", label: "Clubs" },
-  { href: "/login?next=/app/events", label: "Events" },
+  { href: "/app/clubs", label: "Clubs" },
+  { href: "/app/events", label: "Events" },
   { href: "/#about", label: "About" },
 ];
 
