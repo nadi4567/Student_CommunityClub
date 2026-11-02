@@ -23,6 +23,7 @@ Frontend uses `VITE_API_URL` (defaults to `http://localhost:8000`).
 
 ## Run the frontend
 ```bash
+cd Frontend
 npm install
 npm run dev
 ```
