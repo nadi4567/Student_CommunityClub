@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Camera, Flag, MapPin, Users } from "lucide-react";
 import { Badge, Button, Card, Empty, TextArea } from "@/components/ui";
 import { formatDate } from "@/lib/format";
@@ -9,6 +9,9 @@ const tabs = ["About", "Events", "Members", "Announcements"] as const;
 
 export function ClubDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const eventBase = pathname.startsWith("/app") ? "/app/events" : "/events";
   const store = useStore();
   const user = store.currentUser;
   const club = store.clubs.find((c) => c.id === id);
@@ -19,8 +22,10 @@ export function ClubDetailPage() {
 
   if (!club) return <Empty title="Club not found" body="This club may have been removed." />;
 
-  const joined = user ? club.memberIds.includes(user.id) : false;
-  const pending = user ? club.pendingMemberIds.includes(user.id) : false;
+  const isLeader = Boolean(user && club.leaderId === user.id);
+  const canJoin = !user || (user.role !== "admin" && !isLeader);
+  const joined = user && canJoin ? club.memberIds.includes(user.id) : false;
+  const pending = user && canJoin ? club.pendingMemberIds.includes(user.id) : false;
   const events = store.events.filter((e) => e.clubId === club.id);
   const announcements = store.announcements.filter((a) => a.clubId === club.id);
   const members = store.users.filter((u) => club.memberIds.includes(u.id));
@@ -42,27 +47,47 @@ export function ClubDetailPage() {
             </div>
             <p className="mt-2 max-w-2xl text-slate-500">{club.description}</p>
             <div className="mt-4 flex flex-wrap gap-3">
-              {joined ? (
+              {isLeader ? (
+                <>
+                  <Button variant="secondary">Club Leader</Button>
+                  {pathname.startsWith("/app") ? (
+                    <Link to="/app/leader/club">
+                      <Button>Manage Club</Button>
+                    </Link>
+                  ) : null}
+                </>
+              ) : canJoin && joined ? (
                 <Button variant="secondary">Joined</Button>
-              ) : pending ? (
-                <Button variant="secondary">Request pending</Button>
-              ) : (
+              ) : canJoin && pending ? (
+                <>
+                  <Button variant="secondary">Request pending</Button>
+                  {user ? (
+                    <Button variant="outline" onClick={() => void store.cancelJoinRequest(club.id)}>
+                      Cancel request
+                    </Button>
+                  ) : null}
+                </>
+              ) : canJoin ? (
                 <Button
                   onClick={() =>
                     user
-                      ? store.joinClub(club.id)
-                      : (window.location.href = `/login?next=${encodeURIComponent(`/app/clubs/${club.id}`)}`)
+                      ? void store.joinClub(club.id)
+                      : navigate(`/login?next=${encodeURIComponent(`/clubs/${club.id}`)}`)
                   }
                 >
                   Join Club
                 </Button>
-              )}
-              <a href={`mailto:${leader?.email ?? ""}`}>
-                <Button variant="outline">Contact Leader</Button>
-              </a>
-              <Button variant="ghost" onClick={() => setReportOpen((v) => !v)}>
-                <Flag className="h-4 w-4" /> Report
-              </Button>
+              ) : null}
+              {!isLeader ? (
+                <a href={`mailto:${leader?.email ?? ""}`}>
+                  <Button variant="outline">Contact Leader</Button>
+                </a>
+              ) : null}
+              {!isLeader ? (
+                <Button variant="ghost" onClick={() => setReportOpen((v) => !v)}>
+                  <Flag className="h-4 w-4" /> Report
+                </Button>
+              ) : null}
             </div>
             {reportOpen ? (
               <div className="mt-4 max-w-lg space-y-2">
@@ -113,7 +138,7 @@ export function ClubDetailPage() {
                   {events.map((event) => (
                     <Link
                       key={event.id}
-                      to={`/app/events/${event.id}`}
+                      to={`${eventBase}/${event.id}`}
                       className="flex gap-3 rounded-xl hover:bg-slate-50"
                     >
                       <img src={event.image} alt="" className="h-16 w-24 rounded-lg object-cover" />

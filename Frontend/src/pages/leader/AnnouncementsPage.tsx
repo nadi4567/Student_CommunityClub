@@ -9,7 +9,8 @@ export function AnnouncementsPage() {
   const [clubId, setClubId] = useState(led[0]?.id ?? "");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const items = store.announcements.filter((a) => a.clubId === clubId);
+  const selectedClub = led.find((c) => c.id === clubId) ?? led[0];
+  const items = store.announcements.filter((a) => a.clubId === (selectedClub?.id ?? clubId));
 
   if (user.role !== "leader" && user.role !== "admin") {
     return <Empty title="Leaders only" body="Announcements are available to club leaders." />;
@@ -19,29 +20,35 @@ export function AnnouncementsPage() {
     return <Empty title="No club to manage" body="Announcements are available once you lead a club." />;
   }
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    store.publishAnnouncement(clubId, title, body);
+    await store.publishAnnouncement(selectedClub.id, title, body);
     setTitle("");
     setBody("");
   }
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <div className="flex items-center justify-between">
+      <div>
         <h1 className="text-2xl font-bold text-slate-900">Publish announcements</h1>
-        {led.length > 1 ? (
-          <Select value={clubId} onChange={(e) => setClubId(e.target.value)} className="w-56">
-            {led.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-        ) : null}
+        <p className="mt-1 text-sm text-slate-500">
+          Messages go only to members of the selected club, not every user on the platform.
+        </p>
       </div>
       <Card className="p-6">
         <form onSubmit={onSubmit} className="space-y-4">
+          <Field
+            label="Club"
+            hint={`${selectedClub.memberIds.length} member${selectedClub.memberIds.length === 1 ? "" : "s"} will be notified.`}
+          >
+            <Select value={selectedClub.id} onChange={(e) => setClubId(e.target.value)}>
+              {led.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
           <Field label="Title">
             <Input required value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
@@ -53,6 +60,7 @@ export function AnnouncementsPage() {
       </Card>
       {items.map((a) => (
         <Card key={a.id} className="p-4">
+          <p className="text-xs font-medium text-brand">{selectedClub.name}</p>
           <p className="font-semibold">{a.title}</p>
           <p className="mt-1 text-sm text-slate-500">{a.body}</p>
           <p className="mt-2 text-xs text-slate-400">{new Date(a.createdAt).toLocaleString()}</p>

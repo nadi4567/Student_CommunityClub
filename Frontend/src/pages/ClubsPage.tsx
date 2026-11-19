@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { ClubCard } from "@/components/ClubCard";
 import { Empty, Select } from "@/components/ui";
 import { CATEGORIES } from "@/lib/seed";
@@ -8,10 +8,18 @@ import { useStore } from "@/lib/store";
 export function ClubsPage() {
   const store = useStore();
   const user = store.currentUser;
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const q = (searchParams.get("q") ?? "").trim().toLowerCase();
   const [category, setCategory] = useState("All Categories");
   const [sort, setSort] = useState("latest");
+
+  useEffect(() => {
+    // Refresh state from backend so membership statuses (Joined/Pending)
+    // reflect leader approvals/rejections made by other users.
+    store.refreshState();
+  }, [store]);
 
   const clubs = useMemo(() => {
     let list = store.clubs.filter((c) => {
@@ -61,12 +69,19 @@ export function ClubsPage() {
             <ClubCard
               key={club.id}
               club={club}
-              joined={user ? club.memberIds.includes(user.id) : false}
-              pending={user ? club.pendingMemberIds.includes(user.id) : false}
+              joined={Boolean(user && user.role !== "admin" && club.memberIds.includes(user.id))}
+              pending={Boolean(user && user.role !== "admin" && club.pendingMemberIds.includes(user.id))}
               onJoin={
-                user
-                  ? () => store.joinClub(club.id)
-                  : () => (window.location.href = "/login?next=/app/clubs")
+                user?.role === "admin"
+                  ? undefined
+                  : user
+                    ? () => void store.joinClub(club.id)
+                    : () =>
+                        navigate(
+                          `/login?next=${encodeURIComponent(
+                            pathname.startsWith("/app") ? `/app/clubs/${club.id}` : `/clubs/${club.id}`,
+                          )}`,
+                        )
               }
             />
           ))}

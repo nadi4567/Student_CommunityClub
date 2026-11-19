@@ -1,8 +1,14 @@
+import { useEffect } from "react";
 import { Badge, Button, Card, Empty } from "@/components/ui";
 import { useStore } from "@/lib/store";
 
 export function AdminUsersPage() {
   const store = useStore();
+
+  useEffect(() => {
+    void store.getAdminUsers();
+  }, [store]);
+
   if (store.currentUser?.role !== "admin") {
     return <Empty title="Admins only" body="User management is limited to administrators." />;
   }
@@ -42,7 +48,7 @@ export function AdminUsersPage() {
                       <Button
                         variant="secondary"
                         className="px-3 py-1.5 text-xs"
-                        onClick={() => store.updateUser(u.id, { banned: false })}
+                        onClick={() => store.updateAdminUser(u.id, { banned: false })}
                       >
                         Unban
                       </Button>
@@ -50,7 +56,7 @@ export function AdminUsersPage() {
                       <Button
                         variant="danger"
                         className="px-3 py-1.5 text-xs"
-                        onClick={() => store.updateUser(u.id, { banned: true })}
+                        onClick={() => store.updateAdminUser(u.id, { banned: true })}
                         disabled={u.id === store.currentUser?.id}
                       >
                         Ban

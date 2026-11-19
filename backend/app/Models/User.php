@@ -15,6 +15,7 @@ class User extends Authenticatable
     protected $table = 'users';
 
     protected $fillable = [
+        'id',
         'name',
         'email',
         'password',
@@ -38,11 +39,5 @@ class User extends Authenticatable
             'banned' => 'boolean',
             'featured' => 'boolean',
         ];
-    }
-
-    // Do not auto-hash; passwords stored plain to match frontend/demo
-    public function setPasswordAttribute($value)
-    {
-        $this->attributes['password'] = $value;
     }
 }

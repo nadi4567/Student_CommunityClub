@@ -281,6 +281,7 @@ export const initialState: AppState = {
       createdAt: now,
     },
   ],
+  leaderClubs: [],
   membershipRequests: [
     {
       id: "mr-1",

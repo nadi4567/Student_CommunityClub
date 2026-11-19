@@ -1,5 +1,5 @@
-import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { FormEvent, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { CalendarDays, Compass, Search, Sparkles, Users } from "lucide-react";
 import { HeroArt } from "@/components/HeroArt";
 import { PublicNavbar } from "@/components/PublicNavbar";
@@ -7,10 +7,16 @@ import { PublicNavbar } from "@/components/PublicNavbar";
 export function HomePage() {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (hash !== "#about") return;
+    document.getElementById("about")?.scrollIntoView({ behavior: "smooth" });
+  }, [hash]);
 
   function onSearch(e: FormEvent) {
     e.preventDefault();
-    const clubsPath = q.trim() ? `/app/clubs?q=${encodeURIComponent(q.trim())}` : "/app/clubs";
+    const clubsPath = q.trim() ? `/clubs?q=${encodeURIComponent(q.trim())}` : "/clubs";
     navigate(clubsPath);
   }
 
@@ -54,7 +60,7 @@ export function HomePage() {
           <Feature icon={Sparkles} title="Build Your Future" body="Gain skills, experience, and leadership opportunities." />
         </div>
       </section>
-      <section id="about" className="border-t border-slate-100 bg-white py-16">
+      <section id="about" className="scroll-mt-20 border-t border-slate-100 bg-white py-16">
         <div className="mx-auto max-w-3xl px-6 text-center">
           <h2 className="text-2xl font-bold text-slate-900">A campus home for every interest</h2>
           <p className="mt-3 text-slate-500">
@@ -62,10 +68,10 @@ export function HomePage() {
             and announcements. Admins review leader requests and keep the community healthy.
           </p>
           <Link
-            to="/register"
+            to="/login"
             className="mt-6 inline-flex rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white"
           >
-            Create your account
+            Log in to join
           </Link>
         </div>
       </section>

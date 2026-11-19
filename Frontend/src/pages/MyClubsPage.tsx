@@ -1,5 +1,6 @@
+import { Link } from "react-router-dom";
 import { ClubCard } from "@/components/ClubCard";
-import { Empty } from "@/components/ui";
+import { Button, Empty } from "@/components/ui";
 import { useStore } from "@/lib/store";
 
 export function MyClubsPage() {
@@ -11,10 +12,17 @@ export function MyClubsPage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <h1 className="text-2xl font-bold text-slate-900">My Clubs</h1>
-      <p className="mb-6 text-sm text-slate-500">Clubs you have joined or requested to join.</p>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">My Clubs</h1>
+          <p className="text-sm text-slate-500">Clubs you lead, have joined, or requested to join.</p>
+        </div>
+        <Link to="/app/clubs">
+          <Button>Browse Clubs</Button>
+        </Link>
+      </div>
       {clubs.length === 0 ? (
-        <Empty title="No clubs yet" body="Browse clubs and send a join request to get started." />
+        <Empty title="No clubs yet" body="Find a club and send a join request to get started." />
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {clubs.map((club) => (

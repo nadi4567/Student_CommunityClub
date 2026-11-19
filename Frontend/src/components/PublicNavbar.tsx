@@ -1,18 +1,29 @@
-import { Link, useLocation } from "react-router-dom";
+import type { MouseEvent } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Logo } from "./Logo";
 import { useStore } from "@/lib/store";
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/app/clubs", label: "Clubs" },
-  { href: "/app/events", label: "Events" },
+  { href: "/clubs", label: "Clubs" },
+  { href: "/events", label: "Events" },
   { href: "/#about", label: "About" },
 ];
 
 export function PublicNavbar() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
+  const navigate = useNavigate();
   const { currentUser } = useStore();
+
+  function openAbout(event: MouseEvent) {
+    event.preventDefault();
+    if (pathname === "/" && hash === "#about") {
+      document.getElementById("about")?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    navigate("/#about");
+  }
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-100 bg-white/90 backdrop-blur">
@@ -21,19 +32,31 @@ export function PublicNavbar() {
           <Logo />
         </Link>
         <nav className="hidden items-center gap-8 text-sm text-slate-500 md:flex">
-          {links.map((l) => (
-            <Link
-              key={l.label}
-              to={
-                currentUser && (l.label === "Clubs" || l.label === "Events")
-                  ? `/app/${l.label.toLowerCase()}`
-                  : l.href
-              }
-              className={pathname === l.href ? "font-medium text-slate-800" : "hover:text-slate-800"}
-            >
-              {l.label}
-            </Link>
-          ))}
+          {links.map((l) => {
+            const active =
+              l.label === "About" ? pathname === "/" && hash === "#about" : pathname === l.href;
+            if (l.label === "About") {
+              return (
+                <a
+                  key={l.label}
+                  href="/#about"
+                  onClick={openAbout}
+                  className={active ? "font-medium text-slate-800" : "hover:text-slate-800"}
+                >
+                  {l.label}
+                </a>
+              );
+            }
+            return (
+              <Link
+                key={l.label}
+                to={l.href}
+                className={active ? "font-medium text-slate-800" : "hover:text-slate-800"}
+              >
+                {l.label}
+              </Link>
+            );
+          })}
         </nav>
         <div className="flex items-center gap-3">
           <button className="hidden rounded-full p-2 text-slate-400 hover:bg-slate-50 md:block" aria-label="Search">
@@ -47,17 +70,12 @@ export function PublicNavbar() {
               Dashboard
             </Link>
           ) : (
-            <>
-              <Link to="/login" className="text-sm font-medium text-slate-600">
-                Login
-              </Link>
-              <Link
-                to="/register"
-                className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm"
-              >
-                Register
-              </Link>
-            </>
+            <Link
+              to="/login"
+              className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm"
+            >
+              Login
+            </Link>
           )}
         </div>
       </div>

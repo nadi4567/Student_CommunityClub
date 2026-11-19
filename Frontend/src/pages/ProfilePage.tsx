@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Badge, Button, Card, Field, Input } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
-const tabs = ["Personal Info", "My Clubs", "My Events", "Leader Requests"] as const;
+const tabs = ["Personal Info", "My Clubs", "My Events", "Leader Clubs", "Leader Requests"] as const;
 
 export function ProfilePage() {
   const store = useStore();
@@ -17,6 +17,14 @@ export function ProfilePage() {
   const events = store.events.filter((e) => e.registeredIds.includes(user.id));
   const requests = store.leaderRequests.filter((r) => r.userId === user.id);
   const pending = requests.filter((r) => r.status === "pending");
+  const leaderClubs = (store.leaderClubs ?? []).filter((c) => c.leaderId === user.id);
+
+  useEffect(() => {
+    store.getLeaderRequests();
+    store.getLeaderClubs();
+  }, [store]);
+
+
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
@@ -65,8 +73,7 @@ export function ProfilePage() {
                   </Field>
                   <Button
                     onClick={() => {
-                      store.updateUser(user.id, { name, phone });
-                      setEditing(false);
+                      void store.updateUser(user.id, { name, phone }).then(() => setEditing(false));
                     }}
                   >
                     Save
@@ -120,6 +127,23 @@ export function ProfilePage() {
                         </Badge>
                       </div>
                       <p className="mt-1 text-sm text-slate-500">{r.reason}</p>
+                    </Card>
+                  ))
+                )}
+              </div>
+            ) : null}
+            {tab === "Leader Clubs" ? (
+              <div className="space-y-3">
+                {leaderClubs.length === 0 ? (
+                  <p className="text-sm text-slate-500">No clubs yet.</p>
+                ) : (
+                  leaderClubs.map((c) => (
+                    <Card key={c.id} className="p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium">{c.name}</p>
+                        <Badge tone="violet">Leader</Badge>
+                      </div>
+                      <p className="mt-1 text-sm text-slate-500">{c.category}</p>
                     </Card>
                   ))
                 )}

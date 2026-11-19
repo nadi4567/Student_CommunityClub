@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Badge, Button, Card, Empty } from "@/components/ui";
 import { useStore } from "@/lib/store";
 
@@ -8,9 +8,39 @@ export function AdminRequestsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(
     store.leaderRequests.find((r) => r.status === "pending")?.id ?? store.leaderRequests[0]?.id ?? null,
   );
+  const [busy, setBusy] = useState<"approved" | "rejected" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const pickedPending = useRef(false);
   const pending = store.leaderRequests.filter((r) => r.status === "pending");
   const selected = store.leaderRequests.find((r) => r.id === selectedId);
   const applicant = store.users.find((u) => u.id === selected?.userId);
+
+  useEffect(() => {
+    if (user.role !== "admin") return;
+    void store.getAdminLeaderRequests();
+    void store.getAdminUsers();
+  }, [user.id, user.role]);
+
+  useEffect(() => {
+    const pendingOne = store.leaderRequests.find((r) => r.status === "pending");
+    if (!pickedPending.current && pendingOne) {
+      pickedPending.current = true;
+      setSelectedId(pendingOne.id);
+      return;
+    }
+    if (selectedId && store.leaderRequests.some((r) => r.id === selectedId)) return;
+    const next = pendingOne ?? store.leaderRequests[0];
+    if (next) setSelectedId(next.id);
+  }, [store.leaderRequests, selectedId]);
+
+  async function review(status: "approved" | "rejected") {
+    if (!selected || busy) return;
+    setBusy(status);
+    setError(null);
+    const message = await store.reviewLeaderRequest(selected.id, status);
+    setBusy(null);
+    if (message) setError(message);
+  }
 
   if (user.role !== "admin") {
     return <Empty title="Admins only" body="You need an admin account to review leader requests." />;
@@ -29,6 +59,7 @@ export function AdminRequestsPage() {
               return (
                 <button
                   key={r.id}
+                  type="button"
                   onClick={() => setSelectedId(r.id)}
                   className={`w-full rounded-2xl border p-4 text-left ${
                     selectedId === r.id ? "border-brand bg-violet-50" : "border-slate-100 bg-white"
@@ -50,7 +81,32 @@ export function AdminRequestsPage() {
       </div>
       {selected && applicant ? (
         <Card className="p-6">
-          <h2 className="text-xl font-bold">Review applicant</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-bold">Review applicant</h2>
+            {selected.status === "pending" ? (
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  className="min-h-11 min-w-32"
+                  disabled={busy !== null}
+                  onClick={() => void review("approved")}
+                >
+                  {busy === "approved" ? "Approving..." : "Approve"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="danger"
+                  className="min-h-11 min-w-32"
+                  disabled={busy !== null}
+                  onClick={() => void review("rejected")}
+                >
+                  {busy === "rejected" ? "Rejecting..." : "Reject"}
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-slate-500">This request was {selected.status}.</p>
+            )}
+          </div>
           <div className="mt-4 grid gap-6 md:grid-cols-2">
             <div className="space-y-2 text-sm">
               <p className="font-semibold">Applicant details</p>
@@ -69,16 +125,7 @@ export function AdminRequestsPage() {
             </div>
           </div>
           <p className="mt-4 text-sm text-slate-600">{selected.reason}</p>
-          {selected.status === "pending" ? (
-            <div className="mt-6 flex gap-3">
-              <Button onClick={() => store.reviewLeaderRequest(selected.id, "approved")}>Approve</Button>
-              <Button variant="danger" onClick={() => store.reviewLeaderRequest(selected.id, "rejected")}>
-                Reject
-              </Button>
-            </div>
-          ) : (
-            <p className="mt-6 text-sm font-medium text-slate-500">This request was {selected.status}.</p>
-          )}
+          {error ? <p className="mt-3 text-sm font-medium text-rose-600">{error}</p> : null}
         </Card>
       ) : null}
     </div>

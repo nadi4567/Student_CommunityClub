@@ -51,8 +51,8 @@ export function MembersPage() {
                     <p className="text-xs text-slate-500">{applicant?.email}</p>
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={() => store.reviewMembership(r.id, "approved")}>Approve</Button>
-                    <Button variant="danger" onClick={() => store.reviewMembership(r.id, "rejected")}>
+                    <Button onClick={() => void store.reviewMembership(r.id, "approved")}>Approve</Button>
+                    <Button variant="danger" onClick={() => void store.reviewMembership(r.id, "rejected")}>
                       Reject
                     </Button>
                   </div>
@@ -79,7 +79,7 @@ export function MembersPage() {
               {m.id === club.leaderId ? (
                 <Badge>Leader</Badge>
               ) : (
-                <Button variant="ghost" onClick={() => store.removeMember(club.id, m.id)}>
+                <Button variant="ghost" onClick={() => void store.removeMember(club.id, m.id)}>
                   Remove
                 </Button>
               )}

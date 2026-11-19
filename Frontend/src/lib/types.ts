@@ -11,6 +11,7 @@ export type User = {
   phone: string;
   avatar: string;
   memberSince: string;
+  createdAt?: string;
   banned?: boolean;
   featured?: boolean;
 };
@@ -26,10 +27,12 @@ export type Club = {
   leaderId: number;
   location: string;
   founded: string;
+  createdAt?: string;
   meetingTime: string;
   activities: string[];
   memberIds: number[];
   pendingMemberIds: number[];
+  featured?: boolean;
 };
 
 export type ClubEvent = {
@@ -43,7 +46,42 @@ export type ClubEvent = {
   image: string;
   capacity: number;
   registeredIds: number[];
+  attendedIds?: number[];
+  status?: string;
   deadline: string;
+};
+
+export type PlatformAnnouncement = {
+  id: string;
+  title: string;
+  body: string;
+  createdAt: string | null;
+  updatedAt?: string | null;
+};
+
+export type AdminStats = {
+  students: number;
+  leaders: number;
+  admins: number;
+  clubs: number;
+  events: number;
+  pendingLeaderRequests: number;
+  openReports: number;
+};
+
+export type LeaderDashboardStats = {
+  totalMembers: number;
+  pendingRequests: number;
+  upcomingEvents: number;
+  totalRegistrations: number;
+};
+
+export type EventRegistrationRow = {
+  id: number;
+  name: string;
+  email: string;
+  avatar: string;
+  attended: number;
 };
 
 export type LeaderRequest = {
@@ -98,6 +136,7 @@ export type AppState = {
   clubs: Club[];
   events: ClubEvent[];
   leaderRequests: LeaderRequest[];
+  leaderClubs?: Club[];
   membershipRequests: MembershipRequest[];
   announcements: Announcement[];
   notifications: AppNotification[];

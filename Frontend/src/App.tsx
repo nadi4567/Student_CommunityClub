@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "@/components/AppShell";
+import { PublicNavbar } from "@/components/PublicNavbar";
 import { HomePage } from "@/pages/HomePage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
@@ -12,17 +13,33 @@ import { EventsPage } from "@/pages/EventsPage";
 import { EventDetailPage } from "@/pages/EventDetailPage";
 import { MyClubsPage } from "@/pages/MyClubsPage";
 import { RegistrationsPage } from "@/pages/RegistrationsPage";
+import { HistoryPage } from "@/pages/HistoryPage";
 import { NotificationsPage } from "@/pages/NotificationsPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { LeaderRequestPage } from "@/pages/LeaderRequestPage";
 import { ManageClubPage } from "@/pages/leader/ManageClubPage";
 import { MembersPage } from "@/pages/leader/MembersPage";
-import { LeaderEventsPage } from "@/pages/leader/LeaderEventsPage";
 import { AnnouncementsPage } from "@/pages/leader/AnnouncementsPage";
+import { JoinRequestsPage } from "@/pages/leader/JoinRequestsPage";
+import { LeaderRegistrationsPage } from "@/pages/leader/RegistrationsPage";
+import { AttendancePage } from "@/pages/leader/AttendancePage";
+import { LeaderReportsPage } from "@/pages/leader/LeaderReportsPage";
 import { AdminRequestsPage } from "@/pages/admin/AdminRequestsPage";
 import { AdminUsersPage } from "@/pages/admin/AdminUsersPage";
 import { AdminClubsPage } from "@/pages/admin/AdminClubsPage";
 import { AdminReportsPage } from "@/pages/admin/AdminReportsPage";
+import { AdminEventsPage } from "@/pages/admin/AdminEventsPage";
+import { AdminAnnouncementsPage } from "@/pages/admin/AdminAnnouncementsPage";
+import { AdminAnalyticsPage } from "@/pages/admin/AdminAnalyticsPage";
+
+function PublicPage({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#f7f8ff]">
+      <PublicNavbar />
+      <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+    </div>
+  );
+}
 
 function GuestOnly({ children }: { children: ReactNode }) {
   const { currentUser } = useStore();
@@ -48,6 +65,10 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/clubs" element={<PublicPage><ClubsPage /></PublicPage>} />
+      <Route path="/clubs/:id" element={<PublicPage><ClubDetailPage /></PublicPage>} />
+      <Route path="/events" element={<PublicPage><EventsPage /></PublicPage>} />
+      <Route path="/events/:id" element={<PublicPage><EventDetailPage /></PublicPage>} />
       <Route
         path="/login"
         element={
@@ -73,6 +94,7 @@ export default function App() {
         <Route path="events/:id" element={<EventDetailPage />} />
         <Route path="my-clubs" element={<MyClubsPage />} />
         <Route path="registrations" element={<RegistrationsPage />} />
+        <Route path="history" element={<HistoryPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="leader-request" element={<LeaderRequestPage />} />
@@ -93,10 +115,27 @@ export default function App() {
           }
         />
         <Route
-          path="leader/events"
+          path="leader/requests"
           element={
             <RequireRole roles={["leader", "admin"]}>
-              <LeaderEventsPage />
+              <JoinRequestsPage />
+            </RequireRole>
+          }
+        />
+        <Route path="leader/events" element={<Navigate to="/app/events" replace />} />
+        <Route
+          path="leader/registrations"
+          element={
+            <RequireRole roles={["leader", "admin"]}>
+              <LeaderRegistrationsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="leader/attendance"
+          element={
+            <RequireRole roles={["leader", "admin"]}>
+              <AttendancePage />
             </RequireRole>
           }
         />
@@ -105,6 +144,14 @@ export default function App() {
           element={
             <RequireRole roles={["leader", "admin"]}>
               <AnnouncementsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="leader/reports"
+          element={
+            <RequireRole roles={["leader", "admin"]}>
+              <LeaderReportsPage />
             </RequireRole>
           }
         />
@@ -133,10 +180,34 @@ export default function App() {
           }
         />
         <Route
+          path="admin/events"
+          element={
+            <RequireRole roles={["admin"]}>
+              <AdminEventsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/announcements"
+          element={
+            <RequireRole roles={["admin"]}>
+              <AdminAnnouncementsPage />
+            </RequireRole>
+          }
+        />
+        <Route
           path="admin/reports"
           element={
             <RequireRole roles={["admin"]}>
               <AdminReportsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/analytics"
+          element={
+            <RequireRole roles={["admin"]}>
+              <AdminAnalyticsPage />
             </RequireRole>
           }
         />

@@ -8,15 +8,15 @@ export function NotificationsPage() {
   const items = store.notifications.filter((n) => n.userId === user.id);
 
   useEffect(() => {
-    const t = setTimeout(() => store.markNotificationsRead(), 800);
+    const t = setTimeout(() => void store.markNotificationsRead(), 800);
     return () => clearTimeout(t);
-  }, []);
+  }, [store]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900">Notifications</h1>
-        <Button variant="ghost" onClick={store.markNotificationsRead}>
+        <Button variant="ghost" onClick={() => void store.markNotificationsRead()}>
           Mark all read
         </Button>
       </div>

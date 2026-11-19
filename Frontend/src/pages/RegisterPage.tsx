@@ -31,7 +31,7 @@ export function RegisterPage() {
       setError(msg);
       return;
     }
-    navigate("/app/dashboard");
+    navigate("/login?registered=1");
   }
 
   return (

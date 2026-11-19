@@ -13,7 +13,7 @@ class Club extends Model
     protected $keyType = 'string';
     protected $fillable = [
         'id', 'name', 'category', 'description', 'tagline', 'image', 'cover',
-        'leader_id', 'location', 'founded', 'meeting_time',
+        'leader_id', 'location', 'founded', 'meeting_time', 'featured',
     ];
 
     public function leader(): BelongsTo

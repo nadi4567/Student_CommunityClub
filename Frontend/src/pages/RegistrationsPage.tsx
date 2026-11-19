@@ -10,9 +10,14 @@ export function RegistrationsPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
-      <h1 className="text-2xl font-bold text-slate-900">My Registrations</h1>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h1 className="text-2xl font-bold text-slate-900">My Registrations</h1>
+        <Link to="/app/events">
+          <Button>Browse Events</Button>
+        </Link>
+      </div>
       {events.length === 0 ? (
-        <Empty title="No registrations yet" body="Browse events and register for the ones you want to attend." />
+        <Empty title="No registrations yet" body="Find an event and register from its details page." />
       ) : (
         events.map((event) => (
           <Card key={event.id} className="flex items-center justify-between gap-4 p-4">
@@ -26,7 +31,7 @@ export function RegistrationsPage() {
               <Link to={`/app/events/${event.id}`}>
                 <Button variant="secondary">View</Button>
               </Link>
-              <Button variant="danger" onClick={() => store.unregisterEvent(event.id)}>
+              <Button variant="danger" onClick={() => void store.unregisterEvent(event.id)}>
                 Cancel
               </Button>
             </div>

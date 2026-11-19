@@ -1,8 +1,14 @@
+import { useEffect } from "react";
 import { Badge, Button, Card, Empty } from "@/components/ui";
 import { useStore } from "@/lib/store";
 
 export function AdminReportsPage() {
   const store = useStore();
+
+  useEffect(() => {
+    void store.getAdminReports();
+  }, [store]);
+
   if (store.currentUser?.role !== "admin") {
     return <Empty title="Admins only" body="Reported content is reviewed by administrators." />;
   }
@@ -26,7 +32,7 @@ export function AdminReportsPage() {
                   </p>
                 </div>
                 {r.status === "open" ? (
-                  <Button onClick={() => store.resolveReport(r.id)}>Mark resolved</Button>
+                  <Button onClick={() => store.resolveAdminReport(r.id)}>Mark resolved</Button>
                 ) : (
                   <Badge tone="green">resolved</Badge>
                 )}

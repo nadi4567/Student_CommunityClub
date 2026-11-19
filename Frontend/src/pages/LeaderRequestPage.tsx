@@ -14,9 +14,9 @@ export function LeaderRequestPage() {
   const [reason, setReason] = useState("");
   const [documentName, setDocumentName] = useState<string>();
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    store.submitLeaderRequest({ clubName, category, reason, documentName });
+    await store.submitLeaderRequest({ clubName, category, reason, documentName });
     navigate("/app/profile");
   }
 

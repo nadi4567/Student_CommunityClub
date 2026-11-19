@@ -1,29 +1,71 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { CalendarDays, Flag, MapPin, Share2, Users } from "lucide-react";
-import { Button, Card, Empty, TextArea } from "@/components/ui";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, CalendarDays, Flag, MapPin, Share2, Users } from "lucide-react";
+import { EventForm } from "@/components/EventForm";
+import { Badge, Button, Card, Empty, TextArea } from "@/components/ui";
 import { formatDate, monthDay } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
 export function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const eventBase = pathname.startsWith("/app") ? "/app/events" : "/events";
   const store = useStore();
   const user = store.currentUser;
   const event = store.events.find((e) => e.id === id);
   const [copied, setCopied] = useState(false);
   const [reason, setReason] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
 
-  if (!event) return <Empty title="Event not found" body="This event may have been cancelled." />;
+  if (!event) {
+    return (
+      <div className="mx-auto max-w-6xl space-y-4">
+        <Link to={eventBase}>
+          <Button variant="secondary">
+            <ArrowLeft className="h-4 w-4" /> Back to events
+          </Button>
+        </Link>
+        <Empty title="Event not found" body="This event may have been cancelled." />
+      </div>
+    );
+  }
 
   const club = store.clubs.find((c) => c.id === event.clubId);
   const related = store.events.filter((e) => e.clubId === event.clubId && e.id !== event.id).slice(0, 3);
-  const registered = user ? event.registeredIds.includes(user.id) : false;
+  const isHost = Boolean(user && club?.leaderId === user.id);
+  const led = user ? store.clubs.filter((c) => c.leaderId === user.id) : [];
+  const canRegister = !user || (user.role !== "admin" && !isHost);
+  const registered = Boolean(user && canRegister && event.registeredIds.includes(user.id));
   const md = monthDay(event.date);
   const full = event.registeredIds.length >= event.capacity;
 
+  if (editing && isHost) {
+    return (
+      <div className="mx-auto max-w-5xl space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Edit event</h1>
+            <p className="text-sm text-slate-500">{event.title}</p>
+          </div>
+          <Button type="button" variant="secondary" onClick={() => setEditing(false)}>
+            Back to event
+          </Button>
+        </div>
+        <EventForm clubs={led} event={event} onCancel={() => setEditing(false)} onSaved={() => setEditing(false)} />
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[1fr_300px]">
+    <div className="mx-auto max-w-6xl">
+      <Link to={eventBase} className="mb-6 inline-flex">
+        <Button variant="secondary">
+          <ArrowLeft className="h-4 w-4" /> Back to events
+        </Button>
+      </Link>
+      <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
         <div className="relative h-64">
           <img src={event.image} alt="" className="h-full w-full object-cover" />
@@ -36,7 +78,10 @@ export function EventDetailPage() {
           <p className="text-sm text-slate-500">
             {club?.name} • {club?.category}
           </p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">{event.title}</h1>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold text-slate-900">{event.title}</h1>
+            {isHost ? <Badge>Hosting</Badge> : null}
+          </div>
           <p className="mt-2 text-sm text-slate-500">
             {formatDate(event.date)} • {event.time}
           </p>
@@ -57,7 +102,7 @@ export function EventDetailPage() {
               <CalendarDays className="h-4 w-4 text-brand" /> Registration Deadline {formatDate(event.deadline)}
             </p>
           </div>
-          {reportOpen ? (
+          {reportOpen && user?.role !== "admin" ? (
             <div className="mt-4 space-y-2">
               <TextArea
                 rows={3}
@@ -80,24 +125,40 @@ export function EventDetailPage() {
         </div>
       </div>
       <div className="space-y-4">
+        {user?.role === "admin" ? null : (
         <Card className="p-4">
-          {registered ? (
-            <Button className="w-full" variant="secondary" onClick={() => store.unregisterEvent(event.id)}>
+          {isHost ? (
+            <>
+              <Button className="w-full" onClick={() => setEditing(true)}>
+                Edit
+              </Button>
+              <Button
+                className="mt-2 w-full"
+                variant="danger"
+                onClick={() => {
+                  void store.deleteEvent(event.id).then(() => navigate(eventBase));
+                }}
+              >
+                Delete
+              </Button>
+            </>
+          ) : canRegister && registered ? (
+            <Button className="w-full" variant="secondary" onClick={() => void store.unregisterEvent(event.id)}>
               Cancel registration
             </Button>
-          ) : (
+          ) : canRegister ? (
             <Button
               className="w-full"
               disabled={full}
               onClick={() =>
                 user
-                  ? store.registerEvent(event.id)
-                  : (window.location.href = `/login?next=${encodeURIComponent(`/app/events/${event.id}`)}`)
+                  ? void store.registerEvent(event.id)
+                  : navigate(`/login?next=${encodeURIComponent(`${eventBase}/${event.id}`)}`)
               }
             >
               {full ? "Event full" : "Register For Event"}
             </Button>
-          )}
+          ) : null}
           <Button
             variant="ghost"
             className="mt-2 w-full"
@@ -108,15 +169,18 @@ export function EventDetailPage() {
           >
             <Share2 className="h-4 w-4" /> {copied ? "Link copied" : "Share"}
           </Button>
-          <Button variant="ghost" className="w-full" onClick={() => setReportOpen((v) => !v)}>
-            <Flag className="h-4 w-4" /> Report event
-          </Button>
+          {isHost ? null : (
+            <Button variant="ghost" className="w-full" onClick={() => setReportOpen((v) => !v)}>
+              <Flag className="h-4 w-4" /> Report event
+            </Button>
+          )}
         </Card>
+        )}
         <Card className="p-4">
           <p className="mb-3 font-semibold">Related Events</p>
           <div className="space-y-3">
             {related.map((item) => (
-              <Link key={item.id} to={`/app/events/${item.id}`} className="flex gap-3">
+              <Link key={item.id} to={`${eventBase}/${item.id}`} className="flex gap-3">
                 <img src={item.image} alt="" className="h-14 w-20 rounded-lg object-cover" />
                 <div>
                   <p className="text-sm font-medium">{item.title}</p>
@@ -126,6 +190,7 @@ export function EventDetailPage() {
             ))}
           </div>
         </Card>
+      </div>
       </div>
     </div>
   );

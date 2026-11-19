@@ -39,7 +39,9 @@ class ProfileController extends Controller
         if ($request->has('name')) $patch['name'] = $request->input('name');
         if ($request->has('email')) $patch['email'] = $request->input('email');
         if ($request->has('phone')) $patch['phone'] = $request->input('phone');
-        if ($request->has('password')) $patch['password'] = $request->input('password');
+        if ($request->has('password') && $request->input('password') !== '') {
+            $patch['password'] = \Illuminate\Support\Facades\Hash::make($request->input('password'));
+        }
         if ($request->has('avatar')) $patch['avatar'] = $request->input('avatar');
 
         $user->update($patch);
@@ -57,7 +59,8 @@ class ProfileController extends Controller
             'role' => $user->role,
             'phone' => $user->phone,
             'avatar' => $user->avatar,
-            'memberSince' => $user->member_since,
+            'memberSince' => optional($user->created_at)->format('M j, Y') ?: ($user->member_since ?? ''),
+            'createdAt' => optional($user->created_at)->toISOString(),
             'banned' => (bool) $user->banned,
             'featured' => (bool) $user->featured,
         ];

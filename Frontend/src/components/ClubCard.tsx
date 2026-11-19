@@ -1,6 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Users } from "lucide-react";
 import type { Club } from "@/lib/types";
+import { useStore } from "@/lib/store";
 import { Button } from "./ui";
 
 export function ClubCard({
@@ -14,9 +15,14 @@ export function ClubCard({
   joined?: boolean;
   pending?: boolean;
 }) {
+  const { pathname } = useLocation();
+  const user = useStore().currentUser;
+  const isLeader = Boolean(user && club.leaderId === user.id);
+  const href = `${pathname.startsWith("/app") ? "/app/clubs" : "/clubs"}/${club.id}`;
+
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-      <Link to={`/app/clubs/${club.id}`} className="block">
+      <Link to={href} className="block">
         <div className="relative h-36 overflow-hidden">
           <img src={club.image} alt="" className="h-full w-full object-cover" />
           <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-brand shadow-sm">
@@ -32,15 +38,23 @@ export function ClubCard({
         <span className="inline-flex items-center gap-1 text-xs text-slate-500">
           <Users className="h-3.5 w-3.5" /> {club.memberIds.length} members
         </span>
-        {joined ? (
+        {isLeader ? (
+          pathname.startsWith("/app") ? (
+            <Link to="/app/leader/club" className="text-xs font-semibold text-brand">
+              Manage
+            </Link>
+          ) : (
+            <span className="text-xs font-semibold text-brand">Leader</span>
+          )
+        ) : joined ? (
           <span className="text-xs font-semibold text-emerald-600">Joined</span>
         ) : pending ? (
           <span className="text-xs font-semibold text-amber-600">Pending</span>
-        ) : (
+        ) : onJoin ? (
           <Button className="h-8 px-3 py-0 text-xs" onClick={onJoin}>
             Join Club
           </Button>
-        )}
+        ) : null}
       </div>
     </article>
   );
