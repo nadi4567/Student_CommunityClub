@@ -61,12 +61,10 @@ const leaderNav: NavSection[] = [
     items: [
       { href: "/app/leader/club", label: "Details", icon: Settings },
       { href: "/app/leader/members", label: "Members", icon: UserPlus },
-      { href: "/app/leader/requests", label: "Join Requests", icon: ClipboardList },
       { href: "/app/events", label: "Events", icon: CalendarDays },
       { href: "/app/leader/registrations", label: "Registrations", icon: ClipboardCheck },
       { href: "/app/leader/attendance", label: "Attendance", icon: UserCheck },
       { href: "/app/leader/announcements", label: "Announcements", icon: Megaphone },
-      { href: "/app/leader/reports", label: "Reports", icon: Flag },
     ],
   },
   {
@@ -101,12 +99,12 @@ function isActive(pathname: string, href: string) {
 function NavLinks({
   items,
   pathname,
-  unread,
+  badges,
   onNavigate,
 }: {
   items: NavItem[];
   pathname: string;
-  unread: number;
+  badges: Record<string, number>;
   onNavigate?: () => void;
 }) {
   return (
@@ -114,6 +112,7 @@ function NavLinks({
       {items.map((item) => {
         const active = isActive(pathname, item.href);
         const Icon = item.icon;
+        const count = badges[item.href] ?? 0;
         return (
           <Link
             key={item.href}
@@ -125,9 +124,9 @@ function NavLinks({
           >
             <Icon className="pointer-events-none h-4 w-4 shrink-0" aria-hidden />
             <span className="pointer-events-none truncate">{item.label}</span>
-            {item.href === "/app/notifications" && unread > 0 ? (
+            {count > 0 ? (
               <span className="pointer-events-none ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-brand px-1 text-[10px] text-white">
-                {unread}
+                {count}
               </span>
             ) : null}
           </Link>
@@ -140,12 +139,12 @@ function NavLinks({
 function SidebarNav({
   sections,
   pathname,
-  unread,
+  badges,
   onNavigate,
 }: {
   sections: NavSection[];
   pathname: string;
-  unread: number;
+  badges: Record<string, number>;
   onNavigate?: () => void;
 }) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
@@ -159,7 +158,7 @@ function SidebarNav({
         if (!section.label) {
           return (
             <div key={groupId} className="space-y-1">
-              <NavLinks items={section.items} pathname={pathname} unread={unread} onNavigate={onNavigate} />
+              <NavLinks items={section.items} pathname={pathname} badges={badges} onNavigate={onNavigate} />
             </div>
           );
         }
@@ -176,7 +175,7 @@ function SidebarNav({
             </button>
             {expanded ? (
               <div className="space-y-1">
-                <NavLinks items={section.items} pathname={pathname} unread={unread} onNavigate={onNavigate} />
+                <NavLinks items={section.items} pathname={pathname} badges={badges} onNavigate={onNavigate} />
               </div>
             ) : null}
           </div>
@@ -187,13 +186,18 @@ function SidebarNav({
 }
 
 export function AppShell() {
-  const { currentUser, logout, notifications } = useStore();
+  const { currentUser, logout, notifications, reports } = useStore();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
 
   const unread = currentUser ? unreadCount(notifications, currentUser.id) : 0;
+  const openReports = reports.filter((r) => r.status === "open").length;
+  const badges = {
+    "/app/notifications": unread,
+    "/app/admin/reports": currentUser?.role === "admin" ? openReports : 0,
+  };
 
   const sections = useMemo(() => {
     if (!currentUser) return studentNav;
@@ -232,7 +236,7 @@ export function AppShell() {
           <Logo light />
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto px-3">
-          <SidebarNav sections={sections} pathname={pathname} unread={unread} />
+          <SidebarNav sections={sections} pathname={pathname} badges={badges} />
         </nav>
         <button
           type="button"
@@ -257,7 +261,7 @@ export function AppShell() {
               </button>
             </div>
             <nav className="flex-1 space-y-1 overflow-y-auto px-3">
-              <SidebarNav sections={sections} pathname={pathname} unread={unread} onNavigate={() => setOpen(false)} />
+              <SidebarNav sections={sections} pathname={pathname} badges={badges} onNavigate={() => setOpen(false)} />
             </nav>
             <button
               type="button"

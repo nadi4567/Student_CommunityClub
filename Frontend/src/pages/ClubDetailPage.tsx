@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { Camera, Flag, MapPin, Users } from "lucide-react";
+import { ArrowLeft, Camera, Flag, MapPin, Users } from "lucide-react";
 import { Badge, Button, Card, Empty, TextArea } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { useStore } from "@/lib/store";
@@ -11,6 +11,7 @@ export function ClubDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const clubsBase = pathname.startsWith("/app") ? "/app/clubs" : "/clubs";
   const eventBase = pathname.startsWith("/app") ? "/app/events" : "/events";
   const store = useStore();
   const user = store.currentUser;
@@ -19,6 +20,12 @@ export function ClubDetailPage() {
   const [tab, setTab] = useState<(typeof tabs)[number]>("About");
   const [reportOpen, setReportOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [coverFailed, setCoverFailed] = useState(false);
+
+  useEffect(() => {
+    setCoverFailed(false);
+    setTab("About");
+  }, [id]);
 
   if (!club) return <Empty title="Club not found" body="This club may have been removed." />;
 
@@ -29,14 +36,37 @@ export function ClubDetailPage() {
   const events = store.events.filter((e) => e.clubId === club.id);
   const announcements = store.announcements.filter((a) => a.clubId === club.id);
   const members = store.users.filter((u) => club.memberIds.includes(u.id));
+  const coverSrc = !coverFailed && club.cover ? club.cover : club.image;
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
+      <Link
+        to={clubsBase}
+        className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-brand"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Clubs
+      </Link>
       <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
-        <div className="relative h-56">
-          <img src={club.cover} alt="" className="h-full w-full object-cover" />
-          <div className="absolute -bottom-8 left-8 grid h-16 w-16 place-items-center rounded-2xl bg-white shadow">
-            <Camera className="h-7 w-7 text-brand" />
+        <div className="relative h-56 bg-slate-100">
+          {coverSrc ? (
+            <img
+              src={coverSrc}
+              alt=""
+              className="h-full w-full object-cover"
+              onError={() => setCoverFailed(true)}
+            />
+          ) : (
+            <div className="grid h-full place-items-center text-slate-400">
+              <Camera className="h-10 w-10" />
+            </div>
+          )}
+          <div className="absolute -bottom-8 left-8 grid h-16 w-16 place-items-center overflow-hidden rounded-2xl bg-white shadow">
+            {club.image ? (
+              <img src={club.image} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <Camera className="h-7 w-7 text-brand" />
+            )}
           </div>
         </div>
         <div className="grid gap-6 px-8 pb-6 pt-12 lg:grid-cols-[1fr_280px]">

@@ -380,9 +380,12 @@ class LeaderController extends Controller
             'created_at' => now(),
         ]);
 
-        // Notify all current members of the club.
+        // Notify club members only — not the leader who published it.
         $memberIds = DB::table('club_members')->where('club_id', $clubId)->pluck('user_id');
         foreach ($memberIds as $memberId) {
+            if ((int) $memberId === $userId || (int) $memberId === (int) $club->leader_id) {
+                continue;
+            }
             DB::table('notifications')->insert([
                 'id' => 'n-' . substr(md5(uniqid()), 0, 8),
                 'user_id' => (int) $memberId,

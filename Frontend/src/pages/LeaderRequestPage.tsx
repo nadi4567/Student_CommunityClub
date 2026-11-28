@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Button, Card, Field, Input, Select, TextArea } from "@/components/ui";
 import { CATEGORIES } from "@/lib/seed";
 import { useStore } from "@/lib/store";
@@ -13,6 +13,10 @@ export function LeaderRequestPage() {
   const [category, setCategory] = useState("Arts & Design");
   const [reason, setReason] = useState("");
   const [documentName, setDocumentName] = useState<string>();
+
+  if (user.role === "admin") {
+    return <Navigate to="/app/profile" replace />;
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();

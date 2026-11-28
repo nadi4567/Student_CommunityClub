@@ -497,7 +497,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
       submitLeaderRequest: async (input) => {
         const user = currentUser;
-        if (!user) return;
+        if (!user || user.role === "admin") return;
         const res = await fetch(`${API_URL}/api/leader-requests`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1039,9 +1039,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           };
           const club = prev.clubs.find((c) => c.id === clubId);
           const next = { ...prev, announcements: [item, ...prev.announcements] };
-          club?.memberIds.forEach((memberId) =>
-            notify(next, memberId, `${club.name} announcement`, title),
-          );
+          club?.memberIds.forEach((memberId) => {
+            if (memberId === user.id || memberId === club.leaderId) return;
+            notify(next, memberId, `${club.name} announcement`, title);
+          });
           return next;
         });
         const res = await fetch(`${API_URL}/api/leader-clubs/${clubId}/announcements`, {

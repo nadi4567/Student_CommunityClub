@@ -6,7 +6,7 @@ import { Button, Field, Input } from "@/components/ui";
 import { useStore } from "@/lib/store";
 
 export function LoginPage() {
-  const { login, resetDemo } = useStore();
+  const { login } = useStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
@@ -40,12 +40,6 @@ export function LoginPage() {
     }
     if (remember) localStorage.setItem("scc-remember-email", email);
     navigate(safeNext());
-  }
-
-  function fill(demoEmail: string, demoPassword: string) {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setError(null);
   }
 
   return (
@@ -106,7 +100,7 @@ export function LoginPage() {
           </div>
           {forgot ? (
             <p className="text-sm text-amber-700">
-              Password reset is demo-only. Use a seeded account below, or register a new student.
+              Password reset is not available yet. Please contact an administrator or register a new account.
             </p>
           ) : null}
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
@@ -120,28 +114,6 @@ export function LoginPage() {
             Register
           </Link>
         </p>
-        <div className="mt-6 space-y-2 rounded-2xl bg-slate-50 p-3 text-xs text-slate-600">
-          <p className="font-semibold">Demo accounts</p>
-          <button className="block w-full text-left hover:text-brand" onClick={() => fill("alex@example.com", "student123")}>
-            Student — alex@example.com / student123
-          </button>
-          <button className="block w-full text-left hover:text-brand" onClick={() => fill("sarah@example.com", "leader123")}>
-            Club leader — sarah@example.com / leader123
-          </button>
-          <button className="block w-full text-left hover:text-brand" onClick={() => fill("admin@example.com", "admin123")}>
-            Admin — admin@example.com / admin123
-          </button>
-          <button
-            type="button"
-            className="pt-1 text-left text-brand"
-            onClick={() => {
-              resetDemo();
-              setError(null);
-            }}
-          >
-            Reset demo data
-          </button>
-        </div>
       </div>
     </div>
   );

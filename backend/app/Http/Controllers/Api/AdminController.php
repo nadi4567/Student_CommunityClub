@@ -198,6 +198,9 @@ class AdminController extends Controller
             return response()->json(['error' => 'Club not found.'], 404);
         }
 
+        $leaderId = (int) ($club->leader_id ?? 0);
+        $clubName = (string) $club->name;
+
         // Clean up related records.
         DB::table('club_members')->where('club_id', $id)->delete();
         DB::table('membership_requests')->where('club_id', $id)->delete();
@@ -210,6 +213,17 @@ class AdminController extends Controller
         DB::table('events')->where('club_id', $id)->delete();
 
         $club->delete();
+
+        if ($leaderId > 0) {
+            DB::table('notifications')->insert([
+                'id' => 'n-' . substr(md5(uniqid('', true)), 0, 8),
+                'user_id' => $leaderId,
+                'title' => 'Club removed by admin',
+                'message' => "Your club \"{$clubName}\" was removed by an administrator.",
+                'is_read' => 0,
+                'created_at' => now(),
+            ]);
+        }
 
         return response()->json(['ok' => true]);
     }

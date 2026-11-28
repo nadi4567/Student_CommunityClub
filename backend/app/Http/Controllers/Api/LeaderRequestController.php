@@ -22,6 +22,14 @@ class LeaderRequestController extends Controller
             return response()->json(['error' => 'user_id, clubName and reason are required.'], 400);
         }
 
+        $user = User::find($userId);
+        if (! $user) {
+            return response()->json(['error' => 'User not found.'], 404);
+        }
+        if ($user->role === 'admin') {
+            return response()->json(['error' => 'Administrators cannot request a club leader role.'], 403);
+        }
+
         // prevent duplicate pending
         $exists = LeaderRequest::where('user_id', $userId)->where('status', 'pending')->exists();
         if ($exists) {
@@ -41,7 +49,6 @@ class LeaderRequestController extends Controller
         ]);
 
         // notify admins
-        $user = User::find($userId);
         $admins = User::where('role', 'admin')->get();
         foreach ($admins as $admin) {
             DB::table('notifications')->insert([

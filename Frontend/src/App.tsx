@@ -20,10 +20,8 @@ import { LeaderRequestPage } from "@/pages/LeaderRequestPage";
 import { ManageClubPage } from "@/pages/leader/ManageClubPage";
 import { MembersPage } from "@/pages/leader/MembersPage";
 import { AnnouncementsPage } from "@/pages/leader/AnnouncementsPage";
-import { JoinRequestsPage } from "@/pages/leader/JoinRequestsPage";
 import { LeaderRegistrationsPage } from "@/pages/leader/RegistrationsPage";
 import { AttendancePage } from "@/pages/leader/AttendancePage";
-import { LeaderReportsPage } from "@/pages/leader/LeaderReportsPage";
 import { AdminRequestsPage } from "@/pages/admin/AdminRequestsPage";
 import { AdminUsersPage } from "@/pages/admin/AdminUsersPage";
 import { AdminClubsPage } from "@/pages/admin/AdminClubsPage";
@@ -114,14 +112,7 @@ export default function App() {
             </RequireRole>
           }
         />
-        <Route
-          path="leader/requests"
-          element={
-            <RequireRole roles={["leader", "admin"]}>
-              <JoinRequestsPage />
-            </RequireRole>
-          }
-        />
+        <Route path="leader/requests" element={<Navigate to="/app/leader/members" replace />} />
         <Route path="leader/events" element={<Navigate to="/app/events" replace />} />
         <Route
           path="leader/registrations"
@@ -147,14 +138,7 @@ export default function App() {
             </RequireRole>
           }
         />
-        <Route
-          path="leader/reports"
-          element={
-            <RequireRole roles={["leader", "admin"]}>
-              <LeaderReportsPage />
-            </RequireRole>
-          }
-        />
+        <Route path="leader/reports" element={<Navigate to="/app/dashboard" replace />} />
         <Route
           path="admin/requests"
           element={

@@ -11,6 +11,9 @@ export function AnnouncementsPage() {
   const [body, setBody] = useState("");
   const selectedClub = led.find((c) => c.id === clubId) ?? led[0];
   const items = store.announcements.filter((a) => a.clubId === (selectedClub?.id ?? clubId));
+  const notifyCount = selectedClub
+    ? selectedClub.memberIds.filter((id) => id !== user.id && id !== selectedClub.leaderId).length
+    : 0;
 
   if (user.role !== "leader" && user.role !== "admin") {
     return <Empty title="Leaders only" body="Announcements are available to club leaders." />;
@@ -39,7 +42,7 @@ export function AnnouncementsPage() {
         <form onSubmit={onSubmit} className="space-y-4">
           <Field
             label="Club"
-            hint={`${selectedClub.memberIds.length} member${selectedClub.memberIds.length === 1 ? "" : "s"} will be notified.`}
+            hint={`${notifyCount} member${notifyCount === 1 ? "" : "s"} will be notified. You will not get a notification.`}
           >
             <Select value={selectedClub.id} onChange={(e) => setClubId(e.target.value)}>
               {led.map((c) => (

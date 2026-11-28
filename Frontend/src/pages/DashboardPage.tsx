@@ -122,7 +122,7 @@ export function DashboardPage() {
                 {leaderStats?.pendingRequests ?? 0} membership request
                 {(leaderStats?.pendingRequests ?? 0) === 1 ? "" : "s"} waiting for review.
               </p>
-              <Link to="/app/leader/requests">
+              <Link to="/app/leader/members">
                 <Button>Review requests</Button>
               </Link>
             </Card>

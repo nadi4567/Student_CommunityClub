@@ -4,12 +4,16 @@ import { Badge, Button, Card, Field, Input } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
-const tabs = ["Personal Info", "My Clubs", "My Events", "Leader Clubs", "Leader Requests"] as const;
+const allTabs = ["Personal Info", "My Clubs", "My Events", "Leader Clubs", "Leader Requests"] as const;
 
 export function ProfilePage() {
   const store = useStore();
   const user = store.currentUser!;
-  const [tab, setTab] = useState<(typeof tabs)[number]>("Personal Info");
+  const tabs =
+    user.role === "admin"
+      ? (["Personal Info", "My Clubs", "My Events"] as const)
+      : allTabs;
+  const [tab, setTab] = useState<(typeof allTabs)[number]>("Personal Info");
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user.name);
   const [phone, setPhone] = useState(user.phone);
@@ -18,11 +22,13 @@ export function ProfilePage() {
   const requests = store.leaderRequests.filter((r) => r.userId === user.id);
   const pending = requests.filter((r) => r.status === "pending");
   const leaderClubs = (store.leaderClubs ?? []).filter((c) => c.leaderId === user.id);
+  const canRequestLeader = user.role !== "admin";
 
   useEffect(() => {
-    store.getLeaderRequests();
-    store.getLeaderClubs();
-  }, [store]);
+    if (user.role === "admin") return;
+    void store.getLeaderRequests();
+    void store.getLeaderClubs();
+  }, [store, user.role]);
 
 
 
@@ -151,22 +157,33 @@ export function ProfilePage() {
             ) : null}
           </div>
           <div className="space-y-4">
-            <Card className="p-4">
-              <p className="font-semibold">Request Club Leader Role</p>
-              <p className="mt-1 text-sm text-slate-500">
-                Want to become a club leader? Submit a request so the admin can review you and take the next
-                step.
-              </p>
-              <Link to="/app/leader-request">
-                <Button className="mt-3 w-full">Request Now</Button>
-              </Link>
-            </Card>
-            <Card className="p-4">
-              <p className="font-semibold">My Leader Requests</p>
-              <p className="mt-2 text-sm text-slate-500">
-                {pending.length === 0 ? "No requests yet" : `${pending.length} pending`}
-              </p>
-            </Card>
+            {canRequestLeader ? (
+              <>
+                <Card className="p-4">
+                  <p className="font-semibold">Request Club Leader Role</p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Want to become a club leader? Submit a request so the admin can review you and take the next
+                    step.
+                  </p>
+                  <Link to="/app/leader-request">
+                    <Button className="mt-3 w-full">Request Now</Button>
+                  </Link>
+                </Card>
+                <Card className="p-4">
+                  <p className="font-semibold">My Leader Requests</p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    {pending.length === 0 ? "No requests yet" : `${pending.length} pending`}
+                  </p>
+                </Card>
+              </>
+            ) : (
+              <Card className="p-4">
+                <p className="font-semibold">Administrator</p>
+                <p className="mt-1 text-sm text-slate-500">
+                  Admins manage leader applications and clubs. A leader-role request is not required.
+                </p>
+              </Card>
+            )}
           </div>
         </div>
       </Card>
